@@ -9,15 +9,18 @@
 
 from data_filtered import filtered_data # Import the filtered DataFrame module
 import matplotlib.pyplot as plt # Import the matplot library to generate graph plots
+import warnings # Import the warnings library to ignore a message when running the program
 
-
-# First Query: How many TV shows were released per year?
+# First Query: Which years within the 2010s decade saw the highest surge in TV show production?
 
 # Method to develop the full query procedure
 def tv_shows_per_year():
 
     # Load the filtered data from the external module
     df = filtered_data()
+
+    # Keep only data from 2010 to 2020
+    df = df[(df["Year"]>=2010) & (df["Year"]<=2020)]
 
     # Count how many shows there are per year using the globally created column Year and convert the result in DataFrame
     grouped = df["Year"].value_counts().reset_index(name= "Total TV Shows")
@@ -26,7 +29,7 @@ def tv_shows_per_year():
     grouped = grouped.sort_values(by="Year", ascending=True)
 
     # Display a title
-    print("\nNumber of TV Shows Released per Year\n")
+    print("\nTV Show Production per Year (2010-2020)\n")
 
     # Display results in the console terminal, and set the default index to not appear
     print(grouped.to_string(index=False))
@@ -38,10 +41,11 @@ def tv_shows_per_year():
     plt.figure(figsize = (10,8))
 
     # Title style
-    plt.title("Number of TV Shows Released per Year", fontsize=22,family="Arial", fontweight="bold", color="#004D7A")
+    plt.title("TV Show Production During the 2010s", fontsize=22,family="Arial", fontweight="bold", color="#004D7A")
 
     # Set plot line graph, and customize the color and width of the line
-    plt.plot(grouped["Year"], grouped["Total TV Shows"], linewidth=2.5, color = "#1CD7B8")
+    plt.plot(grouped["Year"], grouped["Total TV Shows"], linewidth=2.5, color = "#1CD7B8", marker = "o",
+             label = "TV Shows Released per Year")
 
     # Customize the style for the x-axis label
     plt.xlabel("Year", fontsize=20, family="Arial", fontweight="bold", color="#7C6A0A")
@@ -53,8 +57,14 @@ def tv_shows_per_year():
     plt.tick_params(axis="x", labelsize=14)
     plt.tick_params(axis="y", labelsize=14)
 
+    # Show all year labels in the x-axis
+    plt.xticks(grouped["Year"], rotation=45)
+
     # Present a visible grid in the graph
-    plt.grid(True, linestyle='--', linewidth=0.8, color='#B0B0B0', alpha=0.8)
+    plt.grid(True, linestyle='--', linewidth=0.8, color="#B0B0B0", alpha=1)
+
+    # Add a small legend
+    plt.legend(fontsize=14)
 
     # Allows the axis labels to be displayed correctly
     plt.tight_layout()
@@ -205,7 +215,7 @@ def avg_rating_by_genre():
 
 
 
-# Fourth Query: Which genres have the most long-running shows (over 100 episodes)?
+# Forth Query: Which genres have the most long-running shows (over 100 episodes)?
 
 # Method to develop the full query procedure
 def genres_with_long_shows():
@@ -338,11 +348,13 @@ def shows_per_decade():
     # Display graph
     plt.show()
 
+# Filter warning message
+warnings.filterwarnings("ignore", message="pandas only supports SQLAlchemy")
 
-tv_shows_per_year()
-language_percentage()
-avg_rating_by_genre()
-genres_with_long_shows()
-shows_per_decade()
+#tv_shows_per_year()
+#language_percentage()
+#avg_rating_by_genre()
+#genres_with_long_shows()
+#shows_per_decade()
 
 
