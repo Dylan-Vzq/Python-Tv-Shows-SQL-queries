@@ -35,7 +35,8 @@ def filtered_data():
         connection = mariadb.connect(**DB_CONFIG)
 
         # Load only these columns from the table
-        query = ("SELECT name, genres, original_language, vote_average, first_air_date, number_of_episodes FROM tvshows");
+        query = ("SELECT name, genres, original_language, vote_average, first_air_date,"
+                 " number_of_episodes FROM group01");
 
         # Read data into a pandas DataFrame
         df = pd.read_sql(query, connection)
@@ -49,13 +50,16 @@ def filtered_data():
             df["genres"].notnull() & df["first_air_date"].notnull() & df["number_of_episodes"].notnull()
         ]
 
-        # Convert to datetime and filter by date to avoid erroneous or future dates data
+        # Convert to datetime and filter by date to avoid erroneous, old or future data
         df["first_air_date"] = pd.to_datetime(df["first_air_date"], errors = "coerce")
-        df = df[df["first_air_date"] <= "2025-11-01"]
 
-        # Create a permanent global column of year for grouping
+        # Filter the data to only include the TV shows released from 1960 onward
+        df = df[(df["first_air_date"] >= "1960-01-01") & (df["first_air_date"] <= "2025-11-01")]
+
+        # Create the global "Year" column based on the filter made above for grouping
         df["Year"] = df["first_air_date"].dt.year
 
+        # Display this message if the data was successfully filtered
         print("Data successfully filtered and cleaned. \n")
 
         return df
