@@ -7,8 +7,12 @@ import subprocess
 import mariadb
 import pandas as pd
 import matplotlib.pyplot as plt
+#to ignore the SQLAlchemy warning
+import warnings
+warnings.filterwarnings('ignore', message="pandas only supports SQLAlchemy")
 from mariadb import Error
 import seaborn as sns
+from graph import guillermo_graph
 
 #visuals
 sns.set_style('whitegrid')
@@ -26,7 +30,7 @@ SQL_QUERY_Q1 = """
 SELECT 
     LENGTH(genres) - LENGTH(REPLACE(genres, ',', '')) + 1 AS num_genres,
     AVG(vote_average) AS avg_rating
-FROM tvshows
+FROM group01
 WHERE genres IS NOT NULL AND vote_average IS NOT NULL
 GROUP BY num_genres
 ORDER BY num_genres;
@@ -40,7 +44,7 @@ SELECT
         ELSE CAST(number_of_seasons AS CHAR)
     END AS num_seasons,
     AVG(vote_average) AS avg_rating
-FROM tvshows
+FROM group01
 WHERE number_of_seasons IS NOT NULL AND vote_average IS NOT NULL
 GROUP BY num_seasons
 ORDER BY num_seasons+0;
@@ -51,7 +55,7 @@ SQL_QUERY_Q3 = """
 SELECT 
     YEAR(first_air_date) AS release_year,
     AVG(vote_average) AS avg_rating
-FROM tvshows
+FROM group01
 WHERE first_air_date IS NOT NULL AND vote_average IS NOT NULL
 GROUP BY release_year
 HAVING release_year <= 2025
@@ -63,7 +67,7 @@ SQL_QUERY_Q4 = """
 SELECT 
     name,
     number_of_episodes
-FROM tvshows
+FROM group01
 WHERE number_of_episodes IS NOT NULL
 ORDER BY number_of_episodes DESC
 LIMIT 20;
@@ -80,7 +84,7 @@ SELECT
         ELSE '5k+'
     END AS vote_range,
     AVG(vote_average) AS avg_rating
-FROM tvshows
+FROM group01
 WHERE vote_average IS NOT NULL
 GROUP BY vote_range
 ORDER BY 
@@ -100,9 +104,12 @@ def dylan_question1():
     q1 = pd.read_sql_query(SQL_QUERY_Q1, connection)
     connection.close()
 
-    #graph
+    #graph q1
     plt.figure(figsize=(10,6))
-    sns.barplot(data=q1, x="num_genres", y="avg_rating", color= "#3E92CC", edgecolor="black", label= "average rating")
+    #because in the legend's, it's skipping values, I convert the hue col to string
+    q1["num_genres"] = q1["num_genres"].astype(str)
+    #dodge=False - keeps the bars (for my bar graphs) exactly below x
+    sns.barplot(data=q1, x="num_genres", y="avg_rating", hue= "num_genres", edgecolor="black", palette="viridis", dodge=False)
     plt.title("Average Rating compared with Number of Genres in Shows")
     plt.xlabel("Number of genres")
     plt.ylabel("Average Rating")
@@ -116,13 +123,12 @@ def dylan_question2():
     q2 = pd.read_sql_query(SQL_QUERY_Q2, connection)
     connection.close()
 
-    #graph
+    #graph q2
     plt.figure(figsize=(10,6))
-    sns.barplot(data=q2, x="num_seasons", y="avg_rating", edgecolor="black", label= "average rating")
+    sns.barplot(data=q2, x="num_seasons", y="avg_rating", hue= "num_seasons", palette="mako", edgecolor="black", dodge=False)
     plt.title("Average Rating compared with Number of Seasons in Shows")
     plt.xlabel("Number of Seasons")
     plt.ylabel("Average Rating")
-    plt.legend()
     plt.tight_layout()
     plt.show()
 
@@ -133,9 +139,9 @@ def dylan_question3():
     q3 = pd.read_sql_query(SQL_QUERY_Q3, connection)
     connection.close()
 
-    #graph
+    #graph q3
     plt.figure(figsize=(11,6))
-    sns.lineplot(data=q3, x="release_year", y="avg_rating", color="#9B5DE5", linewidth=1.5, label= "average rating")
+    sns.lineplot(data=q3, x="release_year", y="avg_rating", color="#9B5DE5", linewidth=2, label="Average Rating")
     plt.title("Trend of Average Ratings by Release Year")
     plt.xlabel("Year")
     plt.ylabel("Average Rating")
@@ -151,10 +157,10 @@ def dylan_question4():
     q4 = pd.read_sql_query(SQL_QUERY_Q4, connection)
     connection.close()
 
-    #graph
+    #graph q4
     plt.figure(figsize=(11,8))
     q4 = q4.sort_values("number_of_episodes", ascending=True)
-    sns.barplot(data=q4, x="number_of_episodes", y="name", orient="h", edgecolor="black", label= "episodes")
+    sns.barplot(data=q4, x="number_of_episodes", y="name", orient="h", color="#3E92CC", edgecolor="black")
     plt.title("Top 20 Shows with the highest number of episodes")
     plt.xlabel("Number of Episodes")
     plt.ylabel("Show")
@@ -168,13 +174,12 @@ def dylan_question5():
     q5 = pd.read_sql_query(SQL_QUERY_Q5, connection)
     connection.close()
 
-    #graph
+    #graph q5
     plt.figure(figsize=(10,6))
-    sns.barplot(data=q5, x="vote_range", y="avg_rating", color="#E63946", edgecolor="black", label= "average rating")
+    sns.barplot(data=q5, x="vote_range", y="avg_rating", color="#E63946", edgecolor="black")
     plt.title("Average rating by vote popularity (Grouped by Vote Count)")
     plt.xlabel("Vote Count range")
     plt.ylabel("Average Rating")
-    plt.legend()
     plt.tight_layout()
     plt.show()
 
@@ -207,21 +212,20 @@ def menu():
         print(" 2) Guillermo Rivera Matos")
         print(" 3) Sergio Sanchez Torrado")
         print(" 4) Quit")
-        print("="*72)
+        print("="*50)
         #Makes input regardless if user type a space after or before selection and regardless user types it lowercase or uppercase
         choice = input("Enter selection: ").strip().lower()
 
-        if choice == "1":
-            dylan_graphs_run()
-        elif choice == "2":
-            run_groupMember_script("graph.py")
-        elif choice == "3":
-            run_groupMember_script("tvdb.py")
-        elif choice == "4":
-            print("See ya!")
-            break
-        else:
-            print("Invalid")
+        match choice:
+            case "1":
+                dylan_graphs_run()
+            case "2":
+                guillermo_graph()
+            case "3":
+                run_groupMember_script("tvdb.py")
+            case _:
+                print("Bye!")
+                break
 
 #run the visualization
 if __name__ == "__main__":
