@@ -351,10 +351,12 @@ def shows_per_decade():
 # Filter warning message
 warnings.filterwarnings("ignore", message="pandas only supports SQLAlchemy")
 
-#tv_shows_per_year()
-#language_percentage()
-#avg_rating_by_genre()
-#genres_with_long_shows()
-#shows_per_decade()
+#Run all graphs
+def guillermo_graph():
+    tv_shows_per_year()
+    language_percentage()
+    avg_rating_by_genre()
+    genres_with_long_shows()
+    shows_per_decade()
 
 
